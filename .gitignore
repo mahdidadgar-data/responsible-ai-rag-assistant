@@ -1,0 +1,47 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Local system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# VS Code local settings
+.vscode/
+
+# Raw and processed data
+data/raw/
+data/processed/
+data/vector_store/
+
+# Large local model/vector artifacts
+*.npy
+*.pkl
+*.pickle
+*.parquet
+*.sqlite
+*.sqlite3
+*.db
+
+# Reports generated locally
+reports/*.html
+reports/*.pdf
+
+# Streamlit local config/cache
+.streamlit/secrets.toml

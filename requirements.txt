@@ -1,0 +1,38 @@
+# Core data handling
+
+pandas
+numpy
+
+# Notebook environment
+
+jupyter
+ipykernel
+
+# PDF and document processing
+
+pypdf
+beautifulsoup4
+requests
+
+# Embeddings and vector database
+
+sentence-transformers
+chromadb
+
+# LLM / API integration
+
+openai
+python-dotenv
+
+# App interface
+
+streamlit
+
+# Evaluation and utilities
+
+scikit-learn
+tqdm
+
+# Testing
+
+pytest
