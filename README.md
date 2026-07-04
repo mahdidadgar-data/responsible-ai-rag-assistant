@@ -129,6 +129,8 @@ responsible-ai-rag-assistant/
 │   └── source_register.md
 │
 ├── images/
+│   ├── streamlit_app_answer.png
+│   └── streamlit_app_sources.png
 │
 ├── notebooks/
 │   ├── 01_document_ingestion_and_chunking.ipynb
@@ -242,6 +244,22 @@ Important:
 - `.env` must stay local.
 - `.env` must not be uploaded to GitHub.
 - The project works in fallback mode when OpenAI generation is disabled.
+
+---
+
+## Streamlit Demo Preview
+
+The project includes a local Streamlit interface for asking Responsible AI, EU AI Act, GDPR, and NIST AI RMF questions.
+
+### Answer view
+
+![Streamlit app answer view](images/streamlit_app_answer.png)
+
+### Retrieved sources view
+
+![Streamlit retrieved sources view](images/streamlit_app_sources.png)
+
+The interface shows the generated answer, retrieval method, number of retrieved chunks, top retrieval distance, retrieved source count, and a retrieved-sources table for transparency.
 
 ---
 
