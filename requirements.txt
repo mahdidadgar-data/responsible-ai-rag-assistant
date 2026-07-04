@@ -16,6 +16,8 @@ requests
 
 # Embeddings and vector database
 
+torch
+torchvision
 sentence-transformers
 chromadb
 
