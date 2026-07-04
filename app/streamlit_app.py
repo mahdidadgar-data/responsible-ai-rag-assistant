@@ -62,9 +62,9 @@ def display_retrieved_sources(retrieved_df: pd.DataFrame) -> None:
     ]
 
     st.dataframe(
-        retrieved_df[available_columns],
-        use_container_width=True,
-        hide_index=True,
+    retrieved_df[available_columns],
+    width="stretch",
+    hide_index=True,
     )
 
 
