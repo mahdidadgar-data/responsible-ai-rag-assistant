@@ -4,15 +4,52 @@ from typing import Any
 
 import pandas as pd
 import chromadb
+from chromadb.errors import NotFoundError
 from sentence_transformers import SentenceTransformer
 
 from config import (
     VECTOR_STORE_DIR,
+    MULTISOURCE_CHUNKS_PATH,
     EMBEDDING_MODEL_NAME,
     CHROMA_COLLECTION_NAME,
     OPENAI_MODEL,
     ENABLE_OPENAI_GENERATION,
 )
+
+
+def clean_metadata_value(value: Any) -> str:
+    """
+    Convert metadata values into Chroma-safe primitive values.
+
+    Same logic as notebook 05.
+    """
+    if pd.isna(value):
+        return ""
+    return str(value)
+
+
+def build_chroma_metadata(row: pd.Series, embedding_model_name: str) -> dict:
+    """
+    Create the clean metadata dictionary for one chunk.
+
+    Same fields as build_chroma_metadata() in notebook 05, so a rebuilt
+    collection is identical to the one created in the notebook.
+    """
+    return {
+        "source_id": clean_metadata_value(row["source_id"]),
+        "source_name": clean_metadata_value(row["source_name"]),
+        "publisher": clean_metadata_value(row["publisher"]),
+        "source_type": clean_metadata_value(row["source_type"]),
+        "main_topic": clean_metadata_value(row["main_topic"]),
+        "url": clean_metadata_value(row["url"]),
+        "planned_use": clean_metadata_value(row["planned_use"]),
+        "raw_filename": clean_metadata_value(row["raw_filename"]),
+        "processed_text_file": clean_metadata_value(row["processed_text_file"]),
+        "chunk_index": int(row["chunk_index"]),
+        "word_count": int(row["word_count"]),
+        "character_count": int(row["character_count"]),
+        "embedding_model": embedding_model_name,
+    }
 
 
 def clean_text_for_prompt(text: str) -> str:
@@ -103,6 +140,7 @@ class ResponsibleRAGPipeline:
     The pipeline:
     1. loads the embedding model
     2. connects to the local Chroma vector store
+       (building it from multisource_chunks.csv if it does not exist yet)
     3. retrieves source-aware chunks
     4. builds a responsible RAG prompt
     5. optionally calls OpenAI
@@ -116,12 +154,14 @@ class ResponsibleRAGPipeline:
         vector_store_dir=VECTOR_STORE_DIR,
         openai_model: str = OPENAI_MODEL,
         enable_openai_generation: bool = ENABLE_OPENAI_GENERATION,
+        chunks_path=MULTISOURCE_CHUNKS_PATH,
     ) -> None:
         self.embedding_model_name = embedding_model_name
         self.collection_name = collection_name
         self.vector_store_dir = vector_store_dir
         self.openai_model = openai_model
         self.enable_openai_generation = enable_openai_generation
+        self.chunks_path = chunks_path
 
         self.embedding_model = SentenceTransformer(self.embedding_model_name)
 
@@ -129,9 +169,105 @@ class ResponsibleRAGPipeline:
             path=str(self.vector_store_dir)
         )
 
-        self.collection = self.chroma_client.get_collection(
-            name=self.collection_name
+        self.collection = self._load_or_build_collection()
+
+    def _load_or_build_collection(self):
+        """
+        Return the Chroma collection, building it from the chunks CSV if it
+        does not exist (e.g. on Streamlit Community Cloud, where
+        data/vector_store/ is not in the repository).
+
+        An existing collection is never deleted. If it exists but is empty
+        or incomplete (e.g. an interrupted build), only the missing chunks
+        are added.
+        """
+        try:
+            collection = self.chroma_client.get_collection(
+                name=self.collection_name
+            )
+        except (NotFoundError, ValueError):
+            collection = None
+
+        if collection is not None:
+            if not os.path.exists(self.chunks_path):
+                return collection
+
+            expected_chunks = len(pd.read_csv(self.chunks_path, usecols=["chunk_id"]))
+            if collection.count() >= expected_chunks:
+                return collection
+
+        return self.build_collection_from_chunks()
+
+    def build_collection_from_chunks(self, batch_size: int = 100):
+        """
+        Build (or complete) the multi-source collection from
+        multisource_chunks.csv, matching notebook 05: same embedding model,
+        normalized embeddings, chunk IDs, metadata fields and collection
+        metadata.
+        """
+        if not os.path.exists(self.chunks_path):
+            raise FileNotFoundError(
+                f"Chroma collection '{self.collection_name}' was not found in "
+                f"{self.vector_store_dir} and the chunks file needed to build "
+                f"it is missing: {self.chunks_path}"
+            )
+
+        chunks_df = pd.read_csv(self.chunks_path)
+
+        collection = self.chroma_client.get_or_create_collection(
+            name=self.collection_name,
+            metadata={
+                "description": (
+                    "Multi-source Responsible AI RAG chunks from EU AI Act, "
+                    "GDPR, and NIST AI RMF sources"
+                ),
+                "embedding_model": self.embedding_model_name,
+                "source_count": str(chunks_df["source_id"].nunique()),
+                "chunk_count": str(len(chunks_df)),
+            },
         )
+
+        existing_ids = set(collection.get(include=[])["ids"])
+        missing_df = chunks_df[
+            ~chunks_df["chunk_id"].astype(str).isin(existing_ids)
+        ].reset_index(drop=True)
+
+        if missing_df.empty:
+            return collection
+
+        print(
+            f"Building Chroma collection '{self.collection_name}': "
+            f"embedding {len(missing_df)} chunks from {self.chunks_path}"
+        )
+
+        embeddings = self.embedding_model.encode(
+            missing_df["chunk_text"].astype(str).tolist(),
+            batch_size=32,
+            show_progress_bar=False,
+            convert_to_numpy=True,
+            normalize_embeddings=True,
+        )
+
+        for start_idx in range(0, len(missing_df), batch_size):
+            end_idx = min(start_idx + batch_size, len(missing_df))
+            batch_df = missing_df.iloc[start_idx:end_idx]
+
+            collection.add(
+                ids=batch_df["chunk_id"].astype(str).tolist(),
+                documents=batch_df["chunk_text"].astype(str).tolist(),
+                metadatas=[
+                    build_chroma_metadata(row, self.embedding_model_name)
+                    for _, row in batch_df.iterrows()
+                ],
+                embeddings=embeddings[start_idx:end_idx].tolist(),
+            )
+
+        print(
+            f"Chroma collection '{self.collection_name}' ready with "
+            f"{collection.count()} chunks."
+        )
+
+        return collection
 
     def search(
         self,

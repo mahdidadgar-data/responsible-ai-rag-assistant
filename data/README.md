@@ -26,6 +26,8 @@ This folder is for cleaned and chunked text files created during the document-pr
 
 Processed files should be checked carefully before deciding whether they are safe and appropriate to upload.
 
+The only processed file committed to the repository is `data/processed/multisource_chunks.csv`. It contains text extracted from the five public sources listed in `docs/source_register.md` (European Commission, EUR-Lex and NIST), split into chunks so the app can rebuild its vector store. The original sources remain authoritative; refer to them for the official, complete and current text.
+
 ### `data/vector_store/`
 
 This folder is for the local Chroma vector database.

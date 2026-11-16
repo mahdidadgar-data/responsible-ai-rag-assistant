@@ -1,0 +1,21 @@
+# Development and notebook dependencies.
+# Install with: pip install -r requirements-dev.txt
+-r requirements.txt
+
+# Notebook environment
+jupyter
+ipykernel
+
+# PDF and document processing (notebooks 01 and 04)
+pypdf
+beautifulsoup4
+
+# Embeddings extras
+torchvision
+
+# Evaluation and utilities
+scikit-learn
+tqdm
+
+# Testing
+pytest

@@ -154,14 +154,15 @@ responsible-ai-rag-assistant/
 ├── .gitignore
 ├── LICENSE
 ├── README.md
-└── requirements.txt
+├── requirements.txt
+└── requirements-dev.txt
 ```
 
 ---
 
 ## Data and Artifact Policy
 
-The repository intentionally does **not** include raw downloaded files, processed chunks, embeddings, or local vector-store artifacts.
+The repository intentionally does **not** include raw downloaded files, embeddings, or local vector-store artifacts.
 
 The following local folders are excluded through `.gitignore`:
 
@@ -170,6 +171,8 @@ data/raw/
 data/processed/
 data/vector_store/
 ```
+
+One exception is committed: `data/processed/multisource_chunks.csv`, the public-source text chunks (SRC-001 to SRC-005). If `data/vector_store/` does not exist, for example on Streamlit Community Cloud, the app builds the Chroma vector store from this file on first use.
 
 This keeps the public repository lightweight and avoids uploading generated or potentially large local artifacts.
 
@@ -212,10 +215,16 @@ On Windows PowerShell:
 .\.venv\Scripts\Activate.ps1
 ```
 
-Install dependencies:
+Install dependencies to run the Streamlit app:
 
 ```bash
 pip install -r requirements.txt
+```
+
+To also run the notebooks (Jupyter, PDF/HTML processing, evaluation and test tools), install the development requirements instead:
+
+```bash
+pip install -r requirements-dev.txt
 ```
 
 ---

@@ -1,0 +1,5 @@
+[server]
+# Disable Streamlit's source file watcher. It probes every loaded module's
+# __path__, which makes transformers import optional vision modules and logs
+# "No module named 'torchvision'" tracebacks. Not needed for the deployed app.
+fileWatcherType = "none"

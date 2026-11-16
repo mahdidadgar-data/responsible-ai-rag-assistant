@@ -1,40 +1,23 @@
-# Core data handling
+# Runtime dependencies for the Streamlit app (app/ and src/).
+# Used by Streamlit Community Cloud. Notebook and development tools
+# are in requirements-dev.txt.
 
+# CPU-only PyTorch wheels (avoids downloading the large CUDA build)
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# App interface
+streamlit
+
+# Core data handling
 pandas
 numpy
 
-# Notebook environment
-
-jupyter
-ipykernel
-
-# PDF and document processing
-
-pypdf
-beautifulsoup4
-requests
-
 # Embeddings and vector database
-
 torch
-torchvision
 sentence-transformers
 chromadb
 
 # LLM / API integration
-
 openai
 python-dotenv
-
-# App interface
-
-streamlit
-
-# Evaluation and utilities
-
-scikit-learn
-tqdm
-
-# Testing
-
-pytest
+requests

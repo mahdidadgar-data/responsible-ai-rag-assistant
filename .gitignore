@@ -27,8 +27,12 @@ desktop.ini
 
 # Raw and processed data
 data/raw/
-data/processed/
+data/processed/*
 data/vector_store/
+
+# Exception: public-source chunks (SRC-001..SRC-005) used to rebuild the
+# Chroma vector store on Streamlit Community Cloud
+!data/processed/multisource_chunks.csv
 
 # Large local model/vector artifacts
 *.npy

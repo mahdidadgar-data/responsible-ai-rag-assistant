@@ -12,6 +12,10 @@ PROCESSED_DATA_DIR = DATA_DIR / "processed"
 VECTOR_STORE_DIR = DATA_DIR / "vector_store"
 REPORTS_DIR = PROJECT_ROOT / "reports"
 
+# Public-source chunks (SRC-001..SRC-005) committed to the repo so the
+# vector store can be rebuilt when data/vector_store/ is not available.
+MULTISOURCE_CHUNKS_PATH = PROCESSED_DATA_DIR / "multisource_chunks.csv"
+
 
 # Load local environment variables
 ENV_PATH = PROJECT_ROOT / ".env"
