@@ -1,5 +1,7 @@
 # Responsible AI RAG Assistant
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://responsible-ai-rag-assistant.streamlit.app/)
+
 ## AI Governance, GDPR, and EU AI Act Knowledge Support
 
 This project is a source-grounded **Responsible AI Retrieval-Augmented Generation (RAG) assistant** for questions related to the **EU AI Act**, **GDPR**, and **NIST AI Risk Management Framework (AI RMF)**.
